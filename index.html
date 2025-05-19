@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salesforce Input Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Salesforce Input Calculator</h1>
+        <form id="calculatorForm">
+            <label for="closeDate">Close Date:</label>
+            <input type="date" id="closeDate" name="closeDate" required>
+
+            <label for="shipmentsPerMonth">Number of Shipments per Month:</label>
+            <input type="number" id="shipmentsPerMonth" name="shipmentsPerMonth" required>
+
+            <label for="revenuePerShipment">Revenue per Shipment:</label>
+            <input type="number" id="revenuePerShipment" name="revenuePerShipment" step="0.01" required>
+
+            <button type="submit">Calculate</button>
+        </form>
+
+        <div id="results">
+            <h2>Results</h2>
+            <p id="spmResult">SPM: 21000</p>
+            <p id="ordersPerDayResult">Orders per Day: <span id="ordersPerDayValue"></span></p>
+            <p id="revPerOrderResult">Revenue per Order: <span id="revPerOrderValue"></span></p>
+            <p id="daysLeftInQtrResult">Days Left in Quarter: <span id="daysLeftInQtrValue"></span></p>
+            <p id="commitForecastResult">Commit Forecast: <input type="number" id="commitForecastInput" placeholder="Enter manually"></p>
+            <p id="mostLikelyResult">Most Likely: <span id="mostLikelyValue"></span></p>
+            <p id="bestCaseResult">Best Case: <span id="bestCaseValue"></span></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+---
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #F5F5F5;
+}
+
+.container {
+    background: #FFFFFF;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #007BFF;
+    max-width: 400px;
+    width: 100%;
+}
+
+h1, h2 {
+    font-family: 'Poppins', sans-serif;
+    color: #007BFF;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#results {
+    margin-top: 20px;
+    border-top: 1px solid #007BFF;
+    padding-top: 20px;
+}
+
+#results p {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+#commitForecastInput {
+    width: 100px;
+    padding: 5px;
+}
+---
+document.getElementById('calculatorForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const closeDate = new Date(document.getElementById('closeDate').value);
+    const shipmentsPerMonth = parseFloat(document.getElementById('shipmentsPerMonth').value);
+    const revenuePerShipment = parseFloat(document.getElementById('revenuePerShipment').value);
+
+    const currentDate = new Date();
+    const quarterEndDates = [
+        new Date(currentDate.getFullYear(), 2, 31), // Q1
+        new Date(currentDate.getFullYear(), 5, 30), // Q2
+        new Date(currentDate.getFullYear(), 8, 30), // Q3
+        new Date(currentDate.getFullYear(), 11, 31) // Q4
+    ];
+
+    let daysLeftInQtr = 0;
+    for (let i = 0; i < quarterEndDates.length; i++) {
+        if (closeDate <= quarterEndDates[i]) {
+            daysLeftInQtr = Math.ceil((quarterEndDates[i] - currentDate) / (1000 * 60 * 60 * 24));
+            break;
+        }
+    }
+
+    const ordersPerDay = shipmentsPerMonth / 30; // Assuming 30 days in a month
+    const revPerOrder = revenuePerShipment;
+    const bestCase = ordersPerDay * revPerOrder * daysLeftInQtr;
+    const mostLikely = bestCase / 1.35;
+
+    document.getElementById('ordersPerDayValue').textContent = ordersPerDay.toFixed(2);
+    document.getElementById('revPerOrderValue').textContent = revPerOrder.toFixed(2);
+    document.getElementById('daysLeftInQtrValue').textContent = daysLeftInQtr;
+    document.getElementById('mostLikelyValue').textContent = mostLikely.toFixed(2);
+    document.getElementById('bestCaseValue').textContent = bestCase.toFixed(2);
+});
+---
+# Salesforce Input Calculator
+
+This tool is designed to help you calculate Salesforce inputs based on your close date, number of shipments per month, and revenue per shipment. The tool provides you with the necessary values to manually enter into Salesforce.
+
+## How to Use
+
+1. **Enter the Close Date**: Select the date when the deal is expected to close.
+2. **Enter the Number of Shipments per Month**: Input the number of shipments you expect per month.
+3. **Enter the Revenue per Shipment**: Input the revenue expected per shipment.
+4. **Calculate**: Click the "Calculate" button to see the results.
+
+The tool will display the following values:
+- SPM: Stays constant at 21000.
+- Orders per Day: Calculated based on shipments per month.
+- Revenue per Order: Same as the revenue per shipment.
+- Days Left in Quarter: Calculated based on the close date.
+- Commit Forecast: Enter this value manually.
+- Most Likely: Calculated as Best Case divided by 1.35.
+- Best Case: Calculated based on Orders per Day, Revenue per Order, and Days Left in Quarter.
+
+You can then manually enter these values into Salesforce.
+
+## Example
+
+Here's an example of what the tool looks like:
+
+![Example Image](example.png)
+
+## Technology Stack
+
+- HTML
+- CSS
+- JavaScript
+
+## Hosting
+
+This tool is hosted on GitHub Pages.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+---
+MIT License
+
+Copyright (c) [Year] [Your Name]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
